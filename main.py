@@ -19,7 +19,7 @@ def baslangicVektoru(xInner):
     for x in xInner:
         u0.append(math.sin(math.pi * x))
     return u0
-#Alpha*dt/alpha*dx^2 = r formülünü kullanarak r yi hesapladık
+#Alpha*dt/dx^2 = r formülünü kullanarak r yi hesapladık
 def rHesapla(alpha, dt, dx):
     return alpha * dt / (dx * dx)
 
@@ -39,17 +39,23 @@ def implicit(A, uOnceki):
     uYeni = np.linalg.solve(A, uOncekiVec)
     return uYeni
 
+def format8(value):
+    return f"{value:.8f}"
+
+def analitikCozum(x, t, alpha):
+    return math.exp(-alpha * (math.pi ** 2) * t) * math.sin(math.pi * x)
+
 def zamanaIlerle(A, u0, dt, t):
     adimSayisi = int(round(t/dt))
     u = np.array(u0, dtype = float)
-
     for _ in range(adimSayisi):
         u = implicit(A, u)
-    return u
+    return u, adimSayisi
 
 #Ana fonksiyonumuz
 def main():
-    dx = 0.1
+    #dx = 0.1
+    dx = 0.2
     timeInput = input("Zaman değerini giriniz* : ").strip()
     if timeInput == "":
         print("Zaman değeri boş olamaz.")
@@ -68,18 +74,44 @@ def main():
         dt = 0.01
         r = rHesapla(alpha, dt, dx)
         a = aMatrisiOlustur(len(xInner),r)
-        u1 = implicit(a, u0)
-        print("u1 =",u1.tolist())
-        print("x'in tüm noktaları :", xList)
-        print("x'in iç noktaları :", xInner)
-        print("u0 =", u0)
-        print("r =", r)
-        print("A Boyutu :", a.shape)
-        print("A ilk satır :",a[0])
+        uFinal, k = zamanaIlerle(a, u0, dt, t)
+        print("t|x|numerik|analitik|mutlakHata")
+        for i in range(len(xInner)):
+            xi = xInner[i]
+            num = float(uFinal[i])
+            ana = analitikCozum(xi, t, alpha)
+            hata = abs(num - ana)
+            print(f"{t}|{xi}|{format8(num)}|{format8(ana)}|{format8(hata)}")
+    #    print("x'in tüm noktaları :", xList)
+    #    print("x'in iç noktaları :", xInner)
+    #    print("u0 =", u0)
+    #    print("r =", r)
+    #    print("A Matrisi boyutu :", a.shape)
+    #    print("A ilk satır :",a[0],a[1],a[2],a[3])
     else:
         x = float(locInput)
-        print("TEK NOKTA")
-        print("t :", t, "x :", x)
+        xList = gridOlustur(dx, 1.0)
+        xInner = icNokta(xList)
+        u0 = baslangicVektoru(xInner)
+        alpha = 1.0
+        dt = 0.01
+        r = rHesapla(alpha, dt, dx)
+        a = aMatrisiOlustur(len(xInner), r)
+
+        uFinal, k = zamanaIlerle(a, u0, dt, t)
+
+        idx = int(round((x / dx) - 1))
+        if idx < 0 or idx >= len(xInner):
+            print("x ic noktalar araliginda olmali (0 ile 1 arasi, sinirlar haric).")
+            return
+
+        num = float(uFinal[idx])
+        ana = analitikCozum(x, t, alpha)
+        hata = abs(num - ana)
+
+        print("t|x|numerik|analitik|mutlakHata")
+        print(f"{t}|{x}|{format8(num)}|{format8(ana)}|{format8(hata)}")
+
 
 if __name__ == "__main__":
     main()
