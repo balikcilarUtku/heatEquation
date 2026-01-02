@@ -4,8 +4,8 @@ import numpy as np
 
 
 #gridOlustur fonksiyonu ile x listemizi oluşturuyoruz. Uzaklık 0.1 olacak.
-def gridOlustur(dx, lenght=1.0):
-    adet = int(round(lenght/dx))
+def gridOlustur(dx, length=1.0):
+    adet = int(round(length/dx))
     xList = []
     for i in range(adet + 1):
         xList.append(i * dx)
@@ -30,9 +30,23 @@ def aMatrisiOlustur(n,r):
         A[i,i] = 1 + 2 * r
         if i - 1 >= 0:
             A[i,i-1] = -r
-        if i - 1 < n:
+        if i + 1 < n:
             A[i,i+1] = -r
     return A
+
+def implicit(A, uOnceki):
+    uOncekiVec = np.array(uOnceki, dtype = float)
+    uYeni = np.linalg.solve(A, uOncekiVec)
+    return uYeni
+
+def zamanaIlerle(A, u0, dt, t):
+    adimSayisi = int(round(t/dt))
+    u = np.array(u0, dtype = float)
+
+    for _ in range(adimSayisi):
+        u = implicit(A, u)
+    return u
+
 #Ana fonksiyonumuz
 def main():
     dx = 0.1
@@ -54,6 +68,8 @@ def main():
         dt = 0.01
         r = rHesapla(alpha, dt, dx)
         a = aMatrisiOlustur(len(xInner),r)
+        u1 = implicit(a, u0)
+        print("u1 =",u1.tolist())
         print("x'in tüm noktaları :", xList)
         print("x'in iç noktaları :", xInner)
         print("u0 =", u0)
