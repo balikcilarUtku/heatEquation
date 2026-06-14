@@ -1,4 +1,13 @@
+.venv/
 venv/
+ENV/
+env/
 __pycache__/
-.idea/
 *.pyc
+*.pyo
+*.pyd
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
